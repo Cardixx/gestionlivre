@@ -4,10 +4,10 @@
     <div class="admin-dashboard">
       <div class="header-container">
         <h1 class="title">
-          <span class="icon">📚</span> Bibliothèque du Tribunal Administratif
+          <span class="icon">📚</span> Bibliothèque Indigo
         </h1>
         <p class="subtitle">
-          Portail documentaire officiel - Statistiques et gestion des prêts
+          Portail moderne - Statistiques et gestion des prêts
         </p>
       </div>
 

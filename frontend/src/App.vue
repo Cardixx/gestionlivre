@@ -22,7 +22,7 @@
           <a href="#" class="footer-link">Politique de confidentialité</a>
           <a href="#" class="footer-link">Aide</a>
         </div>
-        <p class="copyright">© {{ currentYear }} Bibliothèque du Tribunal Administratif</p>
+  <p class="copyright">© {{ currentYear }} Bibliothèque Indigo</p>
       </div>
     </footer>
   </div>

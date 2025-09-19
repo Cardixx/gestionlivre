@@ -2,8 +2,8 @@
   <div class="login-container">
     <div class="login-card">
       <!-- Logo ou icône institutionnelle -->
-      <div class="logo">⚖️</div>
-      <h2 class="title">Tribunal Administratif Antananarivo</h2>
+  <div class="logo">📚</div>
+  <h2 class="title">Bibliothèque Indigo</h2>
     
 
       <form @submit.prevent="seConnecter">

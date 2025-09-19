@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-container">
-    <h1 class="dashboard-title">🎛️ Tableau de Bord Admin</h1>
+  <h1 class="dashboard-title">🎛️ Tableau de Bord Bibliothèque Indigo</h1>
     <div class="dashboard-cards">
       <router-link to="/livres" class="dashboard-card">
         <h2>📚 Livres</h2>

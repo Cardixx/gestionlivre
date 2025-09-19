@@ -118,12 +118,12 @@ const router = createRouter({
 // ✅ Middleware de sécurité (auth + admin)
 router.beforeEach((to, from, next) => {
     document.title = to.meta.title ?
-        `${to.meta.title} | Bibliothèque TA` :
-        'Bibliothèque TA'
+        `${to.meta.title} | Bibliothèque Indigo` :
+        'Bibliothèque Indigo'
 
     const authToken = localStorage.getItem('authToken')
     const isAuthenticated = !!authToken
-        // 👉 comme seul le président utilise, on force son rôle = admin
+    // 👉 rôle admin pour gestion avancée
     const isAdmin = isAuthenticated
 
     // Route publique

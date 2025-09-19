@@ -4,7 +4,7 @@
       <!-- Logo -->
       <div class="nav-left">
         <router-link to="/accueil" class="logo-link">
-          <span class="logo-text">Bibliothèque TA</span>
+          <span class="logo-text">Bibliothèque Indigo</span>
         </router-link>
       </div>
 
