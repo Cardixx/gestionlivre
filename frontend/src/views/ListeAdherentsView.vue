@@ -47,7 +47,7 @@
                   v-model="form.telephone" 
                   required 
                   class="form-input" 
-                  placeholder="+261XXXXXXXXX" 
+                  placeholder="XXXXXXXXXX" 
                 />
               </div>
             </div>

@@ -47,7 +47,6 @@ const seConnecter = async () => {
 </script>
 
 <style scoped>
-/* 🌐 Contexte institutionnel : couleurs sobres et sérieuses */
 .login-container {
   display: flex;
   justify-content: center;

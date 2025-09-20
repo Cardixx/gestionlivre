@@ -149,6 +149,25 @@ const chargerLivres = () => {
 }
 
 const ajouterPret = () => {
+  // Contrôle des dates
+  const datePret = new Date(form.value.date_pret);
+  const dateRetour = new Date(form.value.date_retour_prevue);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  if (isNaN(datePret.getTime()) || isNaN(dateRetour.getTime())) {
+    alert("Veuillez saisir des dates valides.");
+    return;
+  }
+  if (datePret > today) {
+    alert("La date de prêt ne peut pas être dans le futur.");
+    return;
+  }
+  if (dateRetour <= datePret) {
+    alert("La date de retour prévue doit être après la date de prêt.");
+    return;
+  }
+
   axios.post('http://localhost:3000/api/prets', form.value)
     .then(() => {
       alert("📦 Prêt enregistré")
