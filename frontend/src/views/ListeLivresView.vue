@@ -58,25 +58,28 @@
             <span class="book-count">{{ livresFiltres.length }} livres</span>
           </div>
 
-          <!-- Barre de recherche -->
-          <div class="search-bar">
-            <input
-              v-model="recherche"
-              type="text"
-              class="search-input"
-              placeholder="🔍 Recherche"
-            />
+          <!-- Barre de filtre avancé -->
+          <div class="search-bar advanced-filter">
+            <input v-model="filtre.titre" type="text" class="search-input" placeholder="Titre" />
+            <input v-model="filtre.auteur" type="text" class="search-input" placeholder="Auteur" />
+            <input v-model="filtre.categorie" type="text" class="search-input" placeholder="Catégorie" />
+            <input v-model="filtre.annee" type="number" class="search-input" placeholder="Année" min="1900" :max="new Date().getFullYear()" />
+            <select v-model="filtre.statut" class="search-input">
+              <option value="">Tous</option>
+              <option value="disponible">Disponible</option>
+              <option value="prete">Prêté</option>
+            </select>
           </div>
 
           <div class="table-responsive">
             <table class="book-table">
               <thead>
                 <tr>
-                  <th>Titre</th>
-                  <th>Auteur</th>
-                  <th>Catégorie</th>
-                  <th>Année</th>
-                  <th>Statut</th>
+                  <th @click="setSort('titre')" style="cursor:pointer">Titre <span v-if="sort.key==='titre'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
+                  <th @click="setSort('auteur')" style="cursor:pointer">Auteur <span v-if="sort.key==='auteur'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
+                  <th @click="setSort('categorie')" style="cursor:pointer">Catégorie <span v-if="sort.key==='categorie'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
+                  <th @click="setSort('annee_edition')" style="cursor:pointer">Année <span v-if="sort.key==='annee_edition'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
+                  <th @click="setSort('statut')" style="cursor:pointer">Statut <span v-if="sort.key==='statut'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -111,6 +114,16 @@
 </template>
 
 <script setup>
+const sort = ref({ key: '', order: 'asc' })
+
+function setSort(key) {
+  if (sort.value.key === key) {
+    sort.value.order = sort.value.order === 'asc' ? 'desc' : 'asc';
+  } else {
+    sort.value.key = key;
+    sort.value.order = 'asc';
+  }
+}
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import Navbar from "@/components/Navbar.vue"
@@ -118,6 +131,13 @@ import Navbar from "@/components/Navbar.vue"
 const livres = ref([])
 const livreEnEdition = ref(null)
 const recherche = ref('')
+const filtre = ref({
+  titre: '',
+  auteur: '',
+  categorie: '',
+  annee: '',
+  statut: ''
+})
 
 const form = ref({
   titre: '',
@@ -137,16 +157,54 @@ const chargerLivres = async () => {
 }
 
 const livresFiltres = computed(() => {
-  return livres.value.filter(livre => {
-    const r = recherche.value.toLowerCase()
-    return (
+  let filtered = livres.value.filter(livre => {
+    // Recherche globale
+    const r = recherche.value.toLowerCase();
+    const matchRecherche =
       livre.titre?.toLowerCase().includes(r) ||
       livre.auteur?.toLowerCase().includes(r) ||
       livre.categorie?.toLowerCase().includes(r) ||
-      livre.annee_edition?.toString().includes(r)
-    )
-  })
-})
+      livre.annee_edition?.toString().includes(r);
+
+    // Contrôle des champs de filtre
+    if (filtre.value.annee && (isNaN(Number(filtre.value.annee)) || Number(filtre.value.annee) < 1900 || Number(filtre.value.annee) > new Date().getFullYear())) return false;
+    if (filtre.value.statut && !['disponible','prete',''].includes(filtre.value.statut)) return false;
+
+    // Filtres avancés
+    const matchTitre = filtre.value.titre === '' || livre.titre?.toLowerCase().includes(filtre.value.titre.toLowerCase());
+    const matchAuteur = filtre.value.auteur === '' || livre.auteur?.toLowerCase().includes(filtre.value.auteur.toLowerCase());
+    const matchCategorie = filtre.value.categorie === '' || livre.categorie?.toLowerCase().includes(filtre.value.categorie.toLowerCase());
+    const matchAnnee = filtre.value.annee === '' || livre.annee_edition?.toString() === filtre.value.annee.toString();
+    const matchStatut =
+      filtre.value.statut === '' ||
+      (filtre.value.statut === 'disponible' && !livre.en_pret) ||
+      (filtre.value.statut === 'prete' && livre.en_pret);
+
+    return matchRecherche && matchTitre && matchAuteur && matchCategorie && matchAnnee && matchStatut;
+  });
+
+  // Triage
+  if (sort.value.key) {
+    filtered = filtered.slice().sort((a, b) => {
+      let va, vb;
+      if (sort.value.key === 'statut') {
+        va = a.en_pret ? 1 : 0;
+        vb = b.en_pret ? 1 : 0;
+      } else {
+        va = a[sort.value.key];
+        vb = b[sort.value.key];
+      }
+      if (va == null) va = '';
+      if (vb == null) vb = '';
+      if (typeof va === 'string') va = va.toLowerCase();
+      if (typeof vb === 'string') vb = vb.toLowerCase();
+      if (va < vb) return sort.value.order === 'asc' ? -1 : 1;
+      if (va > vb) return sort.value.order === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+  return filtered;
+});
 
 const ajouterLivre = async () => {
   try {

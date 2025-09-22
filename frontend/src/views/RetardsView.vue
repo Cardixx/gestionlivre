@@ -54,6 +54,14 @@
         </div>
 
         <div v-else class="table-wrapper">
+          <!-- Barre de filtre avancé -->
+          <div class="search-bar advanced-filter">
+            <input v-model="filtre.livre" type="text" class="search-input" placeholder="Livre" />
+            <input v-model="filtre.adherent" type="text" class="search-input" placeholder="Adhérent" />
+            <input v-model="filtre.datePret" type="date" class="search-input" placeholder="Date prêt" />
+            <input v-model="filtre.dateRetour" type="date" class="search-input" placeholder="Retour prévu" />
+            <input v-model="filtre.retard" type="number" class="search-input" placeholder="Jours de retard" min="0" />
+          </div>
           <table class="modern-table">
             <thead>
               <tr>
@@ -67,7 +75,33 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(retard, index) in retards" :key="retard.id_pret" class="table-row">
+              <tr v-for="(retard, index) in retardsFiltres" :key="retard.id_pret" class="table-row">
+import { computed, ref } from 'vue'
+const filtre = ref({
+  livre: '',
+  adherent: '',
+  datePret: '',
+  dateRetour: '',
+  retard: ''
+})
+
+function getDaysLate(dateRetourPrevue) {
+  const today = new Date();
+  const retour = new Date(dateRetourPrevue);
+  const diff = Math.floor((today - retour) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : 0;
+}
+
+const retardsFiltres = computed(() => {
+  return retards.filter(retard => {
+    const matchLivre = filtre.value.livre === '' || retard.titre?.toLowerCase().includes(filtre.value.livre.toLowerCase());
+    const matchAdherent = filtre.value.adherent === '' || (`${retard.prenom} ${retard.nom}`.toLowerCase().includes(filtre.value.adherent.toLowerCase()));
+    const matchDatePret = filtre.value.datePret === '' || retard.date_pret?.slice(0,10) === filtre.value.datePret;
+    const matchDateRetour = filtre.value.dateRetour === '' || retard.date_retour_prevue?.slice(0,10) === filtre.value.dateRetour;
+    const matchRetard = filtre.value.retard === '' || getDaysLate(retard.date_retour_prevue) === Number(filtre.value.retard);
+    return matchLivre && matchAdherent && matchDatePret && matchDateRetour && matchRetard;
+  });
+});
                 <td class="text-center">{{ index + 1 }}</td>
                 <td>
                   <div class="book-info">

@@ -62,7 +62,15 @@
         <div class="table-card">
           <div class="table-header">
             <h3>Prêts en cours</h3>
-            <span class="book-count">{{ prets.length }} prêts</span>
+            <span class="book-count">{{ pretsFiltres.length }} prêts</span>
+          </div>
+
+          <!-- Barre de filtre avancé -->
+          <div class="search-bar advanced-filter">
+            <input v-model="filtre.adherent" type="text" class="search-input" placeholder="Adhérent" />
+            <input v-model="filtre.livre" type="text" class="search-input" placeholder="Livre" />
+            <input v-model="filtre.datePret" type="date" class="search-input" placeholder="Date prêt" />
+            <input v-model="filtre.dateRetour" type="date" class="search-input" placeholder="Retour prévu" />
           </div>
 
           <div class="table-responsive">
@@ -77,7 +85,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="pret in prets" :key="pret.id_pret">
+                <tr v-for="pret in pretsFiltres" :key="pret.id_pret">
                   <td>{{ pret.nom_adherent }} {{ pret.prenom_adherent }}</td>
                   <td>{{ pret.titre_livre }}</td>
                   <td>{{ formatDate(pret.date_pret) }}</td>
@@ -109,6 +117,23 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+const filtre = ref({
+  adherent: '',
+  livre: '',
+  datePret: '',
+  dateRetour: ''
+})
+
+const pretsFiltres = computed(() => {
+  return prets.value.filter(pret => {
+    const matchAdherent = filtre.value.adherent === '' || (`${pret.nom_adherent} ${pret.prenom_adherent}`.toLowerCase().includes(filtre.value.adherent.toLowerCase()));
+    const matchLivre = filtre.value.livre === '' || pret.titre_livre?.toLowerCase().includes(filtre.value.livre.toLowerCase());
+    const matchDatePret = filtre.value.datePret === '' || pret.date_pret?.slice(0,10) === filtre.value.datePret;
+    const matchDateRetour = filtre.value.dateRetour === '' || pret.date_retour_prevue?.slice(0,10) === filtre.value.dateRetour;
+    return matchAdherent && matchLivre && matchDatePret && matchDateRetour;
+  });
+});
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import Navbar from "@/components/Navbar.vue"
@@ -205,6 +230,33 @@ const isDatePassed = (dateString) => new Date(dateString) < new Date()
 </script>
 
 <style scoped>
+/* Style avancé pour la barre de filtre */
+.search-bar.advanced-filter {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  padding: 12px 16px;
+  flex-wrap: wrap;
+}
+.search-bar.advanced-filter .search-input {
+  flex: 1 1 180px;
+  min-width: 120px;
+  max-width: 220px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  font-size: 14px;
+  margin: 0;
+}
+.search-bar.advanced-filter .search-input:focus {
+  outline: none;
+  border-color: #0969da;
+  box-shadow: 0 0 0 2px rgba(9,105,218,0.08);
+}
 .main-content {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   color: #24292f;

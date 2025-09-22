@@ -75,24 +75,22 @@
             <span class="book-count">{{ adherentsFiltres.length }} adhérents</span>
           </div>
 
-          <!-- Barre de recherche -->
-          <div class="search-bar">
-            <input
-              v-model="recherche"
-              type="text"
-              class="search-input"
-              placeholder="🔍 Recherche"
-            />
+          <!-- Barre de filtre avancé -->
+          <div class="search-bar advanced-filter">
+            <input v-model="filtre.nom" type="text" class="search-input" placeholder="Nom" />
+            <input v-model="filtre.prenom" type="text" class="search-input" placeholder="Prénom" />
+            <input v-model="filtre.fonction" type="text" class="search-input" placeholder="Fonction" />
+            <input v-model="filtre.telephone" type="text" class="search-input" placeholder="Téléphone" />
           </div>
 
           <div class="table-responsive">
             <table class="book-table">
               <thead>
                 <tr>
-                  <th>Nom</th>
-                  <th>Prénom</th>
-                  <th>Fonction</th>
-                  <th>Téléphone</th>
+                  <th @click="setSort('nom')" style="cursor:pointer">Nom <span v-if="sort.key==='nom'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
+                  <th @click="setSort('prenom')" style="cursor:pointer">Prénom <span v-if="sort.key==='prenom'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
+                  <th @click="setSort('fonction')" style="cursor:pointer">Fonction <span v-if="sort.key==='fonction'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
+                  <th @click="setSort('telephone')" style="cursor:pointer">Téléphone <span v-if="sort.key==='telephone'">{{ sort.order==='asc'?'▲':'▼' }}</span></th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -118,6 +116,16 @@
 </template>
 
 <script setup>
+const sort = ref({ key: '', order: 'asc' })
+
+function setSort(key) {
+  if (sort.value.key === key) {
+    sort.value.order = sort.value.order === 'asc' ? 'desc' : 'asc';
+  } else {
+    sort.value.key = key;
+    sort.value.order = 'asc';
+  }
+}
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import Navbar from "@/components/Navbar.vue"
@@ -125,6 +133,12 @@ import Navbar from "@/components/Navbar.vue"
 const adherents = ref([])
 const adherentEnEdition = ref(null)
 const recherche = ref('')
+const filtre = ref({
+  nom: '',
+  prenom: '',
+  fonction: '',
+  telephone: ''
+})
 
 const form = ref({
   nom: '',
@@ -145,14 +159,42 @@ const chargerAdherents = async () => {
 
 // Filtrage par recherche
 const adherentsFiltres = computed(() => {
-  const r = recherche.value.toLowerCase()
-  return adherents.value.filter(a => 
-    a.nom?.toLowerCase().includes(r) ||
-    a.prenom?.toLowerCase().includes(r) ||
-    a.fonction?.toLowerCase().includes(r) ||
-    a.telephone?.includes(r)
-  )
-})
+  let filtered = adherents.value.filter(a => {
+    // Recherche globale
+    const r = recherche.value.toLowerCase();
+    const matchRecherche =
+      a.nom?.toLowerCase().includes(r) ||
+      a.prenom?.toLowerCase().includes(r) ||
+      a.fonction?.toLowerCase().includes(r) ||
+      a.telephone?.includes(r);
+
+    // Contrôle des champs de filtre
+    if (filtre.value.telephone && !/^\d{8,15}$/.test(filtre.value.telephone)) return false;
+
+    // Filtres avancés
+    const matchNom = filtre.value.nom === '' || a.nom?.toLowerCase().includes(filtre.value.nom.toLowerCase());
+    const matchPrenom = filtre.value.prenom === '' || a.prenom?.toLowerCase().includes(filtre.value.prenom.toLowerCase());
+    const matchFonction = filtre.value.fonction === '' || a.fonction?.toLowerCase().includes(filtre.value.fonction.toLowerCase());
+    const matchTelephone = filtre.value.telephone === '' || a.telephone?.includes(filtre.value.telephone);
+
+    return matchRecherche && matchNom && matchPrenom && matchFonction && matchTelephone;
+  });
+
+  // Triage
+  if (sort.value.key) {
+    filtered = filtered.slice().sort((a, b) => {
+      let va = a[sort.value.key], vb = b[sort.value.key];
+      if (va == null) va = '';
+      if (vb == null) vb = '';
+      if (typeof va === 'string') va = va.toLowerCase();
+      if (typeof vb === 'string') vb = vb.toLowerCase();
+      if (va < vb) return sort.value.order === 'asc' ? -1 : 1;
+      if (va > vb) return sort.value.order === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+  return filtered;
+});
 
 // Ajouter un adhérent
 const ajouterAdherent = async () => {
